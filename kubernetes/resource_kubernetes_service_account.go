@@ -27,6 +27,12 @@ func resourceKubernetesServiceAccount() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"metadata": namespacedMetadataSchema("service account", true),
+			"automount_service_account_token": {
+				Type:        schema.TypeBool,
+				Description: "AutomountServiceAccountToken indicates whether pods running as this service account should have an API token automatically mounted. Can be overridden at the pod level.",
+				Optional:    true,
+				Default:     false,
+			},
 			"image_pull_secret": {
 				Type:        schema.TypeSet,
 				Description: "A list of references to secrets in the same namespace to use for pulling any images in pods that reference this Service Account. More info: http://kubernetes.io/docs/user-guide/secrets#manually-specifying-an-imagepullsecret",
@@ -68,7 +74,7 @@ func resourceKubernetesServiceAccountCreate(d *schema.ResourceData, meta interfa
 
 	metadata := expandMetadata(d.Get("metadata").([]interface{}))
 	svcAcc := api.ServiceAccount{
-		AutomountServiceAccountToken: ptrToBool(false),
+		AutomountServiceAccountToken: ptrToBool(d.Get("automount_service_account_token").(bool)),
 		ObjectMeta:                   metadata,
 		ImagePullSecrets:             expandLocalObjectReferenceArray(d.Get("image_pull_secret").(*schema.Set).List()),
 		Secrets:                      expandServiceAccountSecrets(d.Get("secret").(*schema.Set).List(), ""),
@@ -143,6 +149,7 @@ func resourceKubernetesServiceAccountRead(d *schema.ResourceData, meta interface
 	if err != nil {
 		return err
 	}
+	d.Set("automount_service_account_token", svcAcc.AutomountServiceAccountToken)
 	d.Set("image_pull_secret", flattenLocalObjectReferenceArray(svcAcc.ImagePullSecrets))
 
 	defaultSecretName := d.Get("default_secret_name").(string)
@@ -163,6 +170,13 @@ func resourceKubernetesServiceAccountUpdate(d *schema.ResourceData, meta interfa
 	}
 
 	ops := patchMetadata("metadata.0.", "/metadata/", d)
+	if d.HasChange("automount_service_account_token") {
+		v := d.Get("automount_service_account_token")
+		ops = append(ops, &ReplaceOperation{
+			Path:  "/automountServiceAccountToken",
+			Value: v,
+		})
+	}
 	if d.HasChange("image_pull_secret") {
 		v := d.Get("image_pull_secret").(*schema.Set).List()
 		ops = append(ops, &ReplaceOperation{
