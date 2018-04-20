@@ -24,7 +24,7 @@ func resourceKubernetesClusterRole() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"metadata": metadataSchema("cluster role", true),
+			"metadata": rbacMetadataSchema("cluster role", true),
 			"rule": {
 				Type:        schema.TypeList,
 				Description: "Policy Rules",
