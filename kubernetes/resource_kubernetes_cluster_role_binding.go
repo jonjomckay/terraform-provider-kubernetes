@@ -5,11 +5,11 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	pkgApi "k8s.io/apimachinery/pkg/types"
 	kubernetes "k8s.io/client-go/kubernetes"
-	rbacv1 "k8s.io/client-go/pkg/apis/rbac/v1beta1"
 )
 
 func resourceKubernetesClusterRoleBinding() *schema.Resource {
@@ -93,7 +93,7 @@ func resourceKubernetesClusterRoleBindingCreate(d *schema.ResourceData, meta int
 		Subjects:   expandSubjects(d.Get("subject").([]interface{})),
 	}
 	log.Printf("[INFO] Creating new cluster role binding map: %#v", clusterRoleBinding)
-	out, err := conn.RbacV1beta1().ClusterRoleBindings().Create(&clusterRoleBinding)
+	out, err := conn.RbacV1().ClusterRoleBindings().Create(&clusterRoleBinding)
 	if err != nil {
 		return err
 	}
@@ -112,7 +112,7 @@ func resourceKubernetesClusterRoleBindingRead(d *schema.ResourceData, meta inter
 	}
 
 	log.Printf("[INFO] Reading cluster role binding %s", name)
-	crb, err := conn.RbacV1beta1().ClusterRoleBindings().Get(name, metav1.GetOptions{})
+	crb, err := conn.RbacV1().ClusterRoleBindings().Get(name, metav1.GetOptions{})
 	if err != nil {
 		log.Printf("[DEBUG] Received error: %#v", err)
 		return err
@@ -145,7 +145,7 @@ func resourceKubernetesClusterRoleBindingExists(d *schema.ResourceData, meta int
 	}
 
 	log.Printf("[INFO] Checking cluster role binding %s", name)
-	_, err = conn.RbacV1beta1().ClusterRoleBindings().Get(name, metav1.GetOptions{})
+	_, err = conn.RbacV1().ClusterRoleBindings().Get(name, metav1.GetOptions{})
 	if err != nil {
 		if statusErr, ok := err.(*errors.StatusError); ok && statusErr.ErrStatus.Code == 404 {
 			return false, nil
@@ -183,7 +183,7 @@ func resourceKubernetesClusterRoleBindingUpdate(d *schema.ResourceData, meta int
 	}
 
 	log.Printf("[INFO] Updating cluster role binding %s", name)
-	out, err := conn.RbacV1beta1().ClusterRoleBindings().Patch(name, pkgApi.JSONPatchType, data)
+	out, err := conn.RbacV1().ClusterRoleBindings().Patch(name, pkgApi.JSONPatchType, data)
 	if err != nil {
 		return fmt.Errorf("Failed to update cluster role binding: %s", err)
 	}
@@ -200,7 +200,7 @@ func resourceKubernetesClusterRoleBindingDelete(d *schema.ResourceData, meta int
 		return err
 	}
 	log.Printf("[INFO] Deleting cluster role binding: %#v", name)
-	err = conn.RbacV1beta1().ClusterRoleBindings().Delete(name, &metav1.DeleteOptions{})
+	err = conn.RbacV1().ClusterRoleBindings().Delete(name, &metav1.DeleteOptions{})
 	if err != nil {
 		return err
 	}

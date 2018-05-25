@@ -5,11 +5,11 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	rbacv1 "k8s.io/api/rbac/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	pkgApi "k8s.io/apimachinery/pkg/types"
 	kubernetes "k8s.io/client-go/kubernetes"
-	rbacv1 "k8s.io/client-go/pkg/apis/rbac/v1beta1"
 )
 
 func resourceKubernetesClusterRole() *schema.Resource {
@@ -77,7 +77,7 @@ func resourceKubernetesClusterRoleCreate(d *schema.ResourceData, meta interface{
 		Rules:      expandRules(d.Get("rule").([]interface{})),
 	}
 	log.Printf("[INFO] Creating new cluster role map: %#v", clusterRole)
-	out, err := conn.RbacV1beta1().ClusterRoles().Create(&clusterRole)
+	out, err := conn.RbacV1().ClusterRoles().Create(&clusterRole)
 	if err != nil {
 		return err
 	}
@@ -96,7 +96,7 @@ func resourceKubernetesClusterRoleRead(d *schema.ResourceData, meta interface{})
 	}
 
 	log.Printf("[INFO] Reading cluster role %s", name)
-	crb, err := conn.RbacV1beta1().ClusterRoles().Get(name, metav1.GetOptions{})
+	crb, err := conn.RbacV1().ClusterRoles().Get(name, metav1.GetOptions{})
 	if err != nil {
 		log.Printf("[DEBUG] Received error: %#v", err)
 		return err
@@ -124,7 +124,7 @@ func resourceKubernetesClusterRoleExists(d *schema.ResourceData, meta interface{
 	}
 
 	log.Printf("[INFO] Checking cluster role %s", name)
-	_, err = conn.RbacV1beta1().ClusterRoles().Get(name, metav1.GetOptions{})
+	_, err = conn.RbacV1().ClusterRoles().Get(name, metav1.GetOptions{})
 	if err != nil {
 		if statusErr, ok := err.(*errors.StatusError); ok && statusErr.ErrStatus.Code == 404 {
 			return false, nil
@@ -162,7 +162,7 @@ func resourceKubernetesClusterRoleUpdate(d *schema.ResourceData, meta interface{
 	}
 
 	log.Printf("[INFO] Updating cluster role %s", name)
-	out, err := conn.RbacV1beta1().ClusterRoles().Patch(name, pkgApi.JSONPatchType, data)
+	out, err := conn.RbacV1().ClusterRoles().Patch(name, pkgApi.JSONPatchType, data)
 	if err != nil {
 		return fmt.Errorf("Failed to update cluster role: %s", err)
 	}
@@ -179,7 +179,7 @@ func resourceKubernetesClusterRoleDelete(d *schema.ResourceData, meta interface{
 		return err
 	}
 	log.Printf("[INFO] Deleting cluster role: %#v", name)
-	err = conn.RbacV1beta1().ClusterRoles().Delete(name, &metav1.DeleteOptions{})
+	err = conn.RbacV1().ClusterRoles().Delete(name, &metav1.DeleteOptions{})
 	if err != nil {
 		return err
 	}

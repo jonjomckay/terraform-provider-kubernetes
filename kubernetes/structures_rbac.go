@@ -1,7 +1,7 @@
 package kubernetes
 
 import (
-	rbacv1 "k8s.io/client-go/pkg/apis/rbac/v1beta1"
+	rbacv1 "k8s.io/api/rbac/v1"
 )
 
 func expandRules(in []interface{}) []rbacv1.PolicyRule {
