@@ -9,7 +9,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	pkgApi "k8s.io/apimachinery/pkg/types"
-	kubernetes "k8s.io/client-go/kubernetes"
 )
 
 func resourceKubernetesClusterRoleBinding() *schema.Resource {
@@ -85,7 +84,7 @@ func resourceKubernetesClusterRoleBinding() *schema.Resource {
 }
 
 func resourceKubernetesClusterRoleBindingCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*kubernetes.Clientset)
+	conn := meta.(*kubernetesProvider).conn
 
 	clusterRoleBinding := rbacv1.ClusterRoleBinding{
 		ObjectMeta: expandMetadata(d.Get("metadata").([]interface{})),
@@ -104,7 +103,7 @@ func resourceKubernetesClusterRoleBindingCreate(d *schema.ResourceData, meta int
 }
 
 func resourceKubernetesClusterRoleBindingRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*kubernetes.Clientset)
+	conn := meta.(*kubernetesProvider).conn
 
 	_, name, err := idParts(d.Id())
 	if err != nil {
@@ -137,7 +136,7 @@ func resourceKubernetesClusterRoleBindingRead(d *schema.ResourceData, meta inter
 }
 
 func resourceKubernetesClusterRoleBindingExists(d *schema.ResourceData, meta interface{}) (bool, error) {
-	conn := meta.(*kubernetes.Clientset)
+	conn := meta.(*kubernetesProvider).conn
 
 	_, name, err := idParts(d.Id())
 	if err != nil {
@@ -156,7 +155,7 @@ func resourceKubernetesClusterRoleBindingExists(d *schema.ResourceData, meta int
 }
 
 func resourceKubernetesClusterRoleBindingUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*kubernetes.Clientset)
+	conn := meta.(*kubernetesProvider).conn
 
 	_, name, err := idParts(d.Id())
 	if err != nil {
@@ -193,7 +192,7 @@ func resourceKubernetesClusterRoleBindingUpdate(d *schema.ResourceData, meta int
 }
 
 func resourceKubernetesClusterRoleBindingDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*kubernetes.Clientset)
+	conn := meta.(*kubernetesProvider).conn
 
 	_, name, err := idParts(d.Id())
 	if err != nil {
