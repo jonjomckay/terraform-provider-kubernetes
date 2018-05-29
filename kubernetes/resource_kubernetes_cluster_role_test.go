@@ -10,7 +10,6 @@ import (
 	"github.com/hashicorp/terraform/terraform"
 	rbac_v1 "k8s.io/api/rbac/v1"
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	kubernetes "k8s.io/client-go/kubernetes"
 )
 
 func TestAccKubernetesClusterRole_basic(t *testing.T) {
@@ -160,7 +159,7 @@ func TestAccKubernetesClusterRole_importGeneratedName(t *testing.T) {
 }
 
 func testAccCheckKubernetesClusterRoleDestroy(s *terraform.State) error {
-	conn := testAccProvider.Meta().(*kubernetes.Clientset)
+	kp := testAccProvider.Meta().(*kubernetesProvider)
 
 	for _, rs := range s.RootModule().Resources {
 		if rs.Type != "kubernetes_cluster_role" {
@@ -170,7 +169,7 @@ func testAccCheckKubernetesClusterRoleDestroy(s *terraform.State) error {
 		if err != nil {
 			return err
 		}
-		resp, err := conn.RbacV1().ClusterRoles().Get(name, meta_v1.GetOptions{})
+		resp, err := kp.conn.RbacV1().ClusterRoles().Get(name, meta_v1.GetOptions{})
 		if err == nil {
 			if resp.Name == rs.Primary.ID {
 				return fmt.Errorf("ClusterRole still exists: %s", rs.Primary.ID)
@@ -188,12 +187,12 @@ func testAccCheckKubernetesClusterRoleExists(n string, obj *rbac_v1.ClusterRole)
 			return fmt.Errorf("Not found: %s", n)
 		}
 
-		conn := testAccProvider.Meta().(*kubernetes.Clientset)
+		kp := testAccProvider.Meta().(*kubernetesProvider)
 		_, name, err := idParts(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
-		out, err := conn.RbacV1().ClusterRoles().Get(name, meta_v1.GetOptions{})
+		out, err := kp.conn.RbacV1().ClusterRoles().Get(name, meta_v1.GetOptions{})
 		if err != nil {
 			return err
 		}
