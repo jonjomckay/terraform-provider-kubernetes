@@ -9,7 +9,6 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	pkgApi "k8s.io/apimachinery/pkg/types"
-	kubernetes "k8s.io/client-go/kubernetes"
 )
 
 func resourceKubernetesClusterRole() *schema.Resource {
@@ -70,7 +69,7 @@ func resourceKubernetesClusterRole() *schema.Resource {
 }
 
 func resourceKubernetesClusterRoleCreate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*kubernetes.Clientset)
+	conn := meta.(*kubernetesProvider).conn
 
 	clusterRole := rbacv1.ClusterRole{
 		ObjectMeta: expandMetadata(d.Get("metadata").([]interface{})),
@@ -88,7 +87,7 @@ func resourceKubernetesClusterRoleCreate(d *schema.ResourceData, meta interface{
 }
 
 func resourceKubernetesClusterRoleRead(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*kubernetes.Clientset)
+	conn := meta.(*kubernetesProvider).conn
 
 	_, name, err := idParts(d.Id())
 	if err != nil {
@@ -116,7 +115,7 @@ func resourceKubernetesClusterRoleRead(d *schema.ResourceData, meta interface{})
 }
 
 func resourceKubernetesClusterRoleExists(d *schema.ResourceData, meta interface{}) (bool, error) {
-	conn := meta.(*kubernetes.Clientset)
+	conn := meta.(*kubernetesProvider).conn
 
 	_, name, err := idParts(d.Id())
 	if err != nil {
@@ -135,7 +134,7 @@ func resourceKubernetesClusterRoleExists(d *schema.ResourceData, meta interface{
 }
 
 func resourceKubernetesClusterRoleUpdate(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*kubernetes.Clientset)
+	conn := meta.(*kubernetesProvider).conn
 
 	_, name, err := idParts(d.Id())
 	if err != nil {
@@ -172,7 +171,7 @@ func resourceKubernetesClusterRoleUpdate(d *schema.ResourceData, meta interface{
 }
 
 func resourceKubernetesClusterRoleDelete(d *schema.ResourceData, meta interface{}) error {
-	conn := meta.(*kubernetes.Clientset)
+	conn := meta.(*kubernetesProvider).conn
 
 	_, name, err := idParts(d.Id())
 	if err != nil {
