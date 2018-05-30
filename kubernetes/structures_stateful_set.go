@@ -38,6 +38,8 @@ func flattenStatefulSetSpec(in appsv1.StatefulSetSpec, d *schema.ResourceData) (
 		claimState := make(map[string]interface{})
 		claimState["metadata"] = flattenSubMetadata(claim.ObjectMeta, d, fmt.Sprintf("spec.0.volume_claim_templates.%d", i))
 		claimState["spec"] = flattenPersistentVolumeClaimSpec(claim.Spec)
+		claimState["use_default_provisioning"] = d.Get(fmt.Sprintf("spec.0.volume_claim_templates.%d.use_default_provisioning", i)).(bool)
+		claimState["wait_until_bound"] = d.Get(fmt.Sprintf("spec.0.volume_claim_templates.%d.wait_until_bound", i)).(bool)
 		volClaimTemplates[i] = claimState
 	}
 	att["volume_claim_templates"] = volClaimTemplates
@@ -107,7 +109,11 @@ func expandStatefulSetSpec(statefulSet []interface{}) (appsv1.StatefulSetSpec, e
 	for i, claimTemplateRaw := range volClaimTemplates {
 		claimTemplateConfig := claimTemplateRaw.(map[string]interface{})
 		metadata := expandMetadata(claimTemplateConfig["metadata"].([]interface{}))
-		pvcSpec, _ := expandPersistentVolumeClaimSpec(claimTemplateConfig["spec"].([]interface{}))
+		use_default_provisioning := false
+		if v, ok := claimTemplateConfig["use_default_provisioning"].(bool); ok {
+			use_default_provisioning = v
+		}
+		pvcSpec, _ := expandPersistentVolumeClaimSpec(claimTemplateConfig["spec"].([]interface{}), use_default_provisioning)
 		claim := v1.PersistentVolumeClaim{
 			ObjectMeta: metadata,
 			Spec:       pvcSpec,
