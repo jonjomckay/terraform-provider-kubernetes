@@ -232,9 +232,6 @@ resource "kubernetes_stateful_set" "test" {
 		volume_claim_templates {
 			metadata {
 				name = "pvc"
-				annotations {
-					"volume.alpha.kubernetes.io/storage-class" =  "anything"
-				}
 			}
 			spec {
 				access_modes = ["ReadWriteOnce"]

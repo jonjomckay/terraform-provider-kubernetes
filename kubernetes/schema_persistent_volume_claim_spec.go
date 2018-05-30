@@ -108,6 +108,12 @@ func persistentVolumeClaimSpecFields(pvcTemplate bool) map[string]*schema.Schema
 				},
 			},
 		},
+		"use_default_provisioning": {
+			Type:        schema.TypeBool,
+			Description: "Set to true to allow the cluster to determine what storage class to use. Setting spec.storage_class_name will override this.",
+			Optional:    true,
+			Default:     true,
+		},
 		"wait_until_bound": {
 			Type:        schema.TypeBool,
 			Description: "Whether to wait for the claim to reach `Bound` state (to find volume in which to claim the space)",

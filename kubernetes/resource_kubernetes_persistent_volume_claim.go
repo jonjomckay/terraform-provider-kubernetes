@@ -39,7 +39,12 @@ func resourceKubernetesPersistentVolumeClaimCreate(d *schema.ResourceData, meta 
 	conn := meta.(*kubernetesProvider).conn
 
 	metadata := expandMetadata(d.Get("metadata").([]interface{}))
-	spec, err := expandPersistentVolumeClaimSpec(d.Get("spec").([]interface{}))
+
+	use_default_provisioning := false
+	if v, ok := d.GetOk("use_default_provisioning"); ok {
+		use_default_provisioning = v.(bool)
+	}
+	spec, err := expandPersistentVolumeClaimSpec(d.Get("spec").([]interface{}), use_default_provisioning)
 	if err != nil {
 		return err
 	}
@@ -122,6 +127,7 @@ func resourceKubernetesPersistentVolumeClaimRead(d *schema.ResourceData, meta in
 	if err != nil {
 		return err
 	}
+
 	err = d.Set("spec", flattenPersistentVolumeClaimSpec(claim.Spec))
 	if err != nil {
 		return err
