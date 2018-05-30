@@ -58,7 +58,6 @@ func resourceKubernetesStorageClassCreate(d *schema.ResourceData, meta interface
 	}
 
 	if v, ok := d.GetOk("reclaim_policy"); ok && v != "" {
-		fmt.Printf("*** %v", v)
 		storageClass.ReclaimPolicy = new(corev1.PersistentVolumeReclaimPolicy)
 		*storageClass.ReclaimPolicy = corev1.PersistentVolumeReclaimPolicy(v.(string))
 	}
