@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	corev1 "k8s.io/api/core/v1"
 	api "k8s.io/api/storage/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -24,6 +25,13 @@ func resourceKubernetesStorageClass() *schema.Resource {
 
 		Schema: map[string]*schema.Schema{
 			"metadata": metadataSchema("storage class", true),
+			"reclaim_policy": {
+				Type:        schema.TypeString,
+				Description: "Reclaim policy to be applied to provisioned persistent volumes",
+				Optional:    true,
+				Default:     "Delete",
+				ForceNew:    true,
+			},
 			"parameters": {
 				Type:        schema.TypeMap,
 				Description: "The parameters for the provisioner that should create volumes of this storage class",
@@ -47,6 +55,11 @@ func resourceKubernetesStorageClassCreate(d *schema.ResourceData, meta interface
 	storageClass := api.StorageClass{
 		ObjectMeta:  metadata,
 		Provisioner: d.Get("storage_provisioner").(string),
+	}
+
+	if v, ok := d.GetOk("reclaim_policy"); ok && v != "" {
+		storageClass.ReclaimPolicy = new(corev1.PersistentVolumeReclaimPolicy)
+		*storageClass.ReclaimPolicy = corev1.PersistentVolumeReclaimPolicy(v.(string))
 	}
 
 	if v, ok := d.GetOk("parameters"); ok {
@@ -79,6 +92,7 @@ func resourceKubernetesStorageClassRead(d *schema.ResourceData, meta interface{}
 	if err != nil {
 		return err
 	}
+	d.Set("reclaim_policy", storageClass.ReclaimPolicy)
 	d.Set("parameters", storageClass.Parameters)
 	d.Set("storage_provisioner", storageClass.Provisioner)
 
