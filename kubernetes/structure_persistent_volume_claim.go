@@ -36,7 +36,7 @@ func flattenResourceRequirements(in v1.ResourceRequirements) []interface{} {
 
 // Expanders
 
-func expandPersistentVolumeClaimSpec(l []interface{}) (v1.PersistentVolumeClaimSpec, error) {
+func expandPersistentVolumeClaimSpec(l []interface{}, use_default_provisioning bool) (v1.PersistentVolumeClaimSpec, error) {
 	if len(l) == 0 || l[0] == nil {
 		return v1.PersistentVolumeClaimSpec{}, nil
 	}
@@ -55,7 +55,7 @@ func expandPersistentVolumeClaimSpec(l []interface{}) (v1.PersistentVolumeClaimS
 	if v, ok := in["volume_name"].(string); ok {
 		obj.VolumeName = v
 	}
-	if v, ok := in["storage_class_name"].(string); ok && v != "" {
+	if v, ok := in["storage_class_name"].(string); ok && !use_default_provisioning {
 		obj.StorageClassName = ptrToString(v)
 	}
 	return obj, nil

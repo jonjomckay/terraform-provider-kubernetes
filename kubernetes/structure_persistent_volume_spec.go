@@ -1,9 +1,8 @@
 package kubernetes
 
 import (
-	"k8s.io/api/core/v1"
-
 	"github.com/hashicorp/terraform/helper/schema"
+	"k8s.io/api/core/v1"
 )
 
 // Flatteners
@@ -320,6 +319,9 @@ func flattenPersistentVolumeSpec(in v1.PersistentVolumeSpec) []interface{} {
 	}
 	if in.StorageClassName != "" {
 		att["storage_class_name"] = in.StorageClassName
+	}
+	if len(in.MountOptions) > 0 {
+		att["mount_options"] = in.MountOptions
 	}
 	return []interface{}{att}
 }
@@ -816,6 +818,9 @@ func expandPersistentVolumeSpec(l []interface{}) (v1.PersistentVolumeSpec, error
 	}
 	if v, ok := in["storage_class_name"].(string); ok {
 		obj.StorageClassName = v
+	}
+	if v, ok := in["mount_options"].([]interface{}); ok {
+		obj.MountOptions = expandStringSlice(v)
 	}
 	return obj, nil
 }
